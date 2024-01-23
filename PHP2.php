@@ -16,7 +16,7 @@
     mysqli_stmt_execute($kwerenda);
     //sprawdzenie:
     if(mysqli_stmt_affected_rows($kwerenda)==1){
-        echo "<br>"."Zarejestrowano dane użydkownika!";
+        echo "<br>"."Zarejestrowano dane użytkownika!";
     }else{
         echo "Nie powiodło się!";
     }
