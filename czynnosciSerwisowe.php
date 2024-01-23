@@ -195,142 +195,47 @@
             else
                 echo "<h2>Zgłoszenie nr $iz z dnia $dz - odebrane $do</h2>";
             echo "<h2>Opis zgłoszenia: $oz<h2>";
-            echo "<h2>Sprzęt: $nr_ser - $pro $mod - $kat</h2>";
+            echo "<h2>Sprzęt: <a href='sprzetSzczegoly.php?id=$spr_id'>$nr_ser - $pro $mod - $kat</a></h2>";
             if($k1 != "")
                 echo "<h2>Klient: $k1</h2>";
             else
                 echo "<h2>Klient: $k2</h2>";
             echo "<h2>Pracownik: $p</h2>";
             mysqli_stmt_close($kwerenda);
-
-            //od tego momentu niezrobione
             ?>
         </div>
         <div class="form-container">
-            <form action="add_zgl.php" method="post">
-                <h2>Rejestracja urządzenia</h2>
+            <form action="add_servicework.php" method="post">
+                <h2>Czynności serwisowe</h2>
                 <fieldset>
                     <label for="opis">Opis: </label><textarea id="opis" name="opis" required></textarea>
-                    <label for="data_zgloszenia">Data zgłoszenia: </label><input type="date" name="data_zgloszenia" id="data_zgloszenia" value="<?php echo date("Y-m-d"); ?>" max="<?php echo date("Y-m-d"); ?>" required>
-                    <input type="hidden" name="id_urzadzenia" id="id_urzadzenia" value="<?php echo $_GET['id']; ?>">
+                    <label for="cena">Cena: </label><input type="number" name="cena" id="cena" value="0.00" min="0.00" step="0.01" required>
+                    <input type="hidden" name="id_zgloszenia" id="id_zgloszenia" value="<?php echo $_GET['zgl']; ?>">
                 </fieldset>
                 <fieldset>
-                    <label for="id_klienta">Klient: </label>
-                    <select id="id_klienta" name="id_klienta" class="select2" required>
-                        <option value=""></option>
-                        <?php
-                        $kwerenda = mysqli_prepare($conn, "SELECT id_klienta, CONCAT(imie_k, ' ', nazwisko_k) as in_k, firma_k, email_k FROM klient");
-                        mysqli_stmt_execute($kwerenda);
-                        mysqli_stmt_bind_result($kwerenda, $idk, $ink, $fk, $email);
-                        while (mysqli_stmt_fetch($kwerenda)) {
-                            if ($fk == "")
-                                echo "<option value='$idk'>$ink ($email)</option>";
-                            else
-                                echo "<option value='$idk'>$fk ($email)</option>";
-                        }
-                        mysqli_stmt_close($kwerenda);
-                        ?>
-                    </select>
-                    <label for="id_pracownika">Pracownik: </label>
-                    <select id="id_pracownika" name="id_pracownika" class="select2" required>
-                        <option value=""></option>
-                        <?php
-                        $kwerenda = mysqli_prepare($conn, "SELECT id_pracownika, CONCAT(imie_p, ' ', nazwisko_p) as in_p, email_p FROM pracownik");
-                        mysqli_stmt_execute($kwerenda);
-                        mysqli_stmt_bind_result($kwerenda, $idp, $inp, $email);
-                        while (mysqli_stmt_fetch($kwerenda))
-                            echo "<option value='$idp'>$inp ($email)</option>";
-                        mysqli_stmt_close($kwerenda);
-                        ?>
-                    </select>
-                </fieldset>
-                <fieldset>
-                    <input type="submit" value="Dodaj zgłoszenie">
+                    <input type="submit" value="Dodaj czynność">
                 </fieldset>
             </form>
         </div>
         <div class="dept-data">
-            <h2>Zgłoszenia</h2>
+            <h2>Czynności serwisowe</h2>
             <table>
                 <tr>
                     <th>Opis</th>
-                    <th>Data zgłoszenia</th>
-                    <th>Data odbioru</th>
-                    <th>Klient</th>
-                    <th>Pracownik</th>
-                    <th>Status</th>
-                    <th>Czynności serwisowe</th>
-                    <th>Akcje</th>
+                    <th>Cena</th>
                 </tr>
                 <?php
 
-                $kwerenda = mysqli_prepare($conn, "SELECT
-                    zgloszenie.id_zgloszenia,
-                    zgloszenie.opis_zgloszenia,
-                    zgloszenie.data_zgloszenia,
-                    IFNULL(zgloszenie.data_odbioru, 'Nieodebrane'),
-                    klient.firma_k,
-                    CONCAT(klient.imie_k, ' ', klient.nazwisko_k) AS klient,
-                    CONCAT(pracownik.imie_p, ' ', pracownik.nazwisko_p) AS pracownik,
-                    IFNULL(status_naprawy.status, 'BRAK') AS status_naprawy,
-                    COUNT(czynnosci_serwisowe.id_czynnosci) AS liczba_czynnosci
-                FROM
-                    zgloszenie
-                JOIN
-                    klient USING (id_klienta)
-                JOIN
-                    pracownik USING (id_pracownika)
-                LEFT JOIN
-                    czynnosci_serwisowe USING (id_zgloszenia)
-                JOIN
-                    status_naprawy ON zgloszenie.id_zgloszenia = status_naprawy.id_zgloszenia
-                JOIN
-                    (
-                        SELECT
-                            id_zgloszenia,
-                            MAX(data_zmiany) AS najnowsza_data_zmiany
-                        FROM
-                            status_naprawy
-                        GROUP BY
-                            id_zgloszenia
-                    ) AS najnowszy_status ON status_naprawy.id_zgloszenia = najnowszy_status.id_zgloszenia
-                        AND status_naprawy.data_zmiany = najnowszy_status.najnowsza_data_zmiany
-                WHERE zgloszenie.id_urzadzenia = ?
-                GROUP BY
-                    zgloszenie.id_zgloszenia;");
-                $id_urz = $_GET['id'];
-                mysqli_stmt_bind_param($kwerenda, 'i', $id_urz);
+                $kwerenda = mysqli_prepare($conn, "SELECT id_czynnosci, opis_czynnosci, cena FROM czynnosci_serwisowe WHERE id_zgloszenia = ?");
+                $id_zgl = $_GET['zgl'];
+                mysqli_stmt_bind_param($kwerenda, 'i', $id_zgl);
                 mysqli_stmt_execute($kwerenda);
-                mysqli_stmt_bind_result($kwerenda, $iz, $oz, $dz, $do, $k1, $k2, $p, $status, $lc);
+                mysqli_stmt_bind_result($kwerenda, $ic, $oc, $c);
                 while (mysqli_stmt_fetch($kwerenda)) {
-                    echo "<tr id='zgl-$iz'>";
-                    echo "<td>" . $oz . "</td>";
-                    echo "<td>" . $dz . "</td>";
-                    echo "<td class='data-odbioru'>" . $do . "</td>";
-                    if ($k1 != "")
-                        echo "<td>" . $k1 . "</td>";
-                    else
-                        echo "<td>" . $k2 . "</td>";
-                    echo "<td>" . $p . "</td>";
-                    echo "<td class='status'>" . $status . "</td>";
-                    echo "<td><a href='czynnosciSerwisowe.php?zgl=$iz'>Czynności ($lc)</a></td>";
-                    echo "<td class='buttons'>";
-                    if ($do == "Nieodebrane")
-                        echo "<button class='end'>Odbiór</button>";
-                    else
-                        echo "<button class='restart'>Anuluj odbiór</button>";
-
-                    if ($status != "Przyjęto w oddziale")
-                        echo "<button class='status-btn prev-status'>Poprz. status</button>";
-                    else
-                        echo "<button class='status-btn prev-status' hidden>Poprz. status</button>";
-
-                    if ($status != "Gotowy do odbioru")
-                        echo "<button class='status-btn next-status'>Nast. status</button>";
-                    else
-                        echo "<button class='status-btn next-status' hidden>Nast. status</button>";
-
-                    echo "</td></tr>";
+                    echo "<tr id='czy-$ic'>";
+                    echo "<td>" . $oc . "</td>";
+                    echo "<td>" . $c . " zł</td>";
+                    echo "</tr>";
                 }
                 mysqli_close($conn);
                 ?>
@@ -338,98 +243,7 @@
         </div>
     </div>
     <script>
-        const STATUSY = ["Przyjęto w oddziale", "W trakcie naprawy", "Gotowy do odbioru"]
-        const endBtnArr = document.querySelectorAll("button.end");
-        const restartBtnArr = document.querySelectorAll("button.restart");
-        const statusBtnArr = document.querySelectorAll("button.status-btn");
-
-        $(document).ready(function() {
-            $('.select2#id_klienta').select2({
-                placeholder: '-- Wybierz klienta --',
-                language: 'pl'
-            });
-            $('.select2#id_pracownika').select2({
-                placeholder: '-- Wybierz pracownika --',
-                language: 'pl'
-            });
-
-            $(document).on('select2:open', () => {
-                document.querySelector('.select2-container--open .select2-search__field').focus();
-            });
-        })
-
-        function changeOdb() {
-            let end = true;
-            if (event.target.classList.contains("restart")) end = false;
-            const rowEl = event.target.parentNode.parentNode;
-            const sendData = {
-                id: rowEl.getAttribute("id").substring(4),
-                endZgl: end
-            };
-            $.ajax({
-                type: "POST",
-                url: "finishZgl.php",
-                data: sendData
-            }).done(resp => {
-                rowEl.querySelector(".data-odbioru").textContent = resp;
-                let btnEl = rowEl.querySelector(".buttons .end");
-
-                if (btnEl == undefined) {
-                    let btnEl = rowEl.querySelector(".buttons .restart");
-                    btnEl.textContent = "Odbiór";
-                    btnEl.classList.remove("restart");
-                    btnEl.classList.add("end");
-                } else {
-                    btnEl.textContent = "Anuluj odbiór";
-                    btnEl.classList.remove("end");
-                    btnEl.classList.add("restart");
-                }
-            })
-        }
-
-        function changeStatus() {
-            const rowEl = event.target.parentNode.parentNode;
-            const currStatus = rowEl.querySelector(".status").textContent;
-            let statusId = STATUSY.indexOf(currStatus);
-            if (event.target.classList.contains("prev-status")) statusId--;
-            else if (event.target.classList.contains("next-status")) statusId++;
-
-            if (statusId > -1 && statusId < STATUSY.length) {
-                const sendData = {
-                    id: rowEl.getAttribute("id").substring(4),
-                    status: STATUSY[statusId]
-                };
-                $.ajax({
-                    type: "POST",
-                    url: "changeStatus.php",
-                    data: sendData
-                }).done(resp => {
-                    rowEl.querySelector(".status").textContent = STATUSY[statusId];
-                    
-                    if(statusId == 0)
-                        rowEl.querySelector(".prev-status").setAttribute("hidden", "hidden");
-                    else
-                        rowEl.querySelector(".prev-status").removeAttribute("hidden");
-
-                    if(statusId == STATUSY.length - 1)
-                        rowEl.querySelector(".next-status").setAttribute("hidden", "hidden");
-                    else
-                        rowEl.querySelector(".next-status").removeAttribute("hidden");
-                })
-            }
-        }
-
-        window.addEventListener("load", () => {
-            endBtnArr.forEach(btn => {
-                btn.addEventListener("click", changeOdb);
-            })
-            restartBtnArr.forEach(btn => {
-                btn.addEventListener("click", changeOdb);
-            })
-            statusBtnArr.forEach(btn => {
-                btn.addEventListener("click", changeStatus);
-            })
-        })
+        
     </script>
 </body>
 
