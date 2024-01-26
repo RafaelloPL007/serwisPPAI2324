@@ -171,7 +171,7 @@
     ?>
     <div class="main-panel">
         <div class="form-container">
-            <form action="add_employee.php" method="post">
+            <form action="php/add_employee.php" method="post">
                 <h2>Rejestracja pracownika</h2>
                 <fieldset>
                     <label for="imie_p">Imię: </label><input type="text" id="imie_p" name="imie_p" required>
@@ -210,12 +210,17 @@
                     <th>Telefon</th>
                     <th>Email</th>
                     <th>Oddział</th>
+                    <th>Zgłoszenia</th>
                 </tr>
                 <?php
 
-                $kwerenda = mysqli_prepare($conn, "SELECT imie_p, nazwisko_p, telefon_p, email_p, oddzial.nazwa_oddzialu FROM pracownik JOIN oddzial USING (id_oddzialu)");
+                $kwerenda = mysqli_prepare($conn, "SELECT id_pracownika, imie_p, nazwisko_p, telefon_p, email_p, oddzial.nazwa_oddzialu, 
+                COUNT(zgloszenie.id_zgloszenia) AS total_zgloszenia,
+                SUM(CASE WHEN zgloszenie.data_odbioru IS NULL AND zgloszenie.id_zgloszenia IS NOT NULL THEN 1 ELSE 0 END) AS pending_zgloszenia
+                FROM pracownik JOIN oddzial USING (id_oddzialu) LEFT JOIN zgloszenie USING (id_pracownika)");
+
                 mysqli_stmt_execute($kwerenda);
-                mysqli_stmt_bind_result($kwerenda, $ip, $np, $tp, $ep, $no);
+                mysqli_stmt_bind_result($kwerenda, $id, $ip, $np, $tp, $ep, $no, $lz, $az);
                 while (mysqli_stmt_fetch($kwerenda)) {
                     echo "<tr>";
                     echo "<td>" . $ip . "</td>";
@@ -223,6 +228,7 @@
                     echo "<td>" . $tp . "</td>";
                     echo "<td>" . $ep . "</td>";
                     echo "<td>" . $no . "</td>";
+                    echo "<td><a href='pracownikSzczegoly.php?id=$id'>Zgłoszenia ($az/$lz)</a></td>";
                     echo "</tr>";
                 }
                 mysqli_close($conn);

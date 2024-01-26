@@ -185,12 +185,13 @@
             define('pass', '');
             $conn = mysqli_connect(host, user, pass);
             $baza = mysqli_select_db($conn, 'serwis_3ct_gr1');
-            $kwerenda = mysqli_prepare($conn, "SELECT id_urzadzenia, nr_seryjny, producent, model, kategoria FROM sprzet WHERE id_urzadzenia = ?");
+            $kwerenda = mysqli_prepare($conn, "SELECT id_pracownika, imie_p, nazwisko_p, telefon_p, email_p FROM pracownik WHERE id_pracownika = ?");
             mysqli_stmt_bind_param($kwerenda, 'i', $_GET['id']);
             mysqli_stmt_execute($kwerenda);
-            mysqli_stmt_bind_result($kwerenda, $iu, $ns, $pr, $mo, $kat);
+            mysqli_stmt_bind_result($kwerenda, $id, $imie, $naz, $tel, $email);
             mysqli_stmt_fetch($kwerenda);
-            echo "<h2>" . $ns . " - " . $pr . " " . $mo . " - " . $kat . "</h2>";
+            echo "<h2>Pracownik: $imie $naz</h2>";
+            echo "<h2>$tel - $email</h2>";
             mysqli_stmt_close($kwerenda);
             ?>
         </div>
@@ -200,9 +201,22 @@
                 <fieldset>
                     <label for="opis">Opis: </label><textarea id="opis" name="opis" required></textarea>
                     <label for="data_zgloszenia">Data zgłoszenia: </label><input type="date" name="data_zgloszenia" id="data_zgloszenia" value="<?php echo date("Y-m-d"); ?>" max="<?php echo date("Y-m-d"); ?>" required>
-                    <input type="hidden" name="id_urzadzenia" id="id_urzadzenia" value="<?php echo $_GET['id']; ?>">
+                    <input type="hidden" name="id_pracownika" id="id_pracownika" value="<?php echo $_GET['id']; ?>">
                 </fieldset>
                 <fieldset>
+                    <label for="id_urzadzenia">Urządzenie: </label>
+                    <select id="id_urzadzenia" name="id_urzadzenia" class="select2" required>
+                        <option value=""></option>
+                        <?php
+                        $kwerenda = mysqli_prepare($conn, "SELECT id_urzadzenia, nr_seryjny, producent, model FROM sprzet");
+                        mysqli_stmt_execute($kwerenda);
+                        mysqli_stmt_bind_result($kwerenda, $id, $ns, $pr, $mo);
+                        while (mysqli_stmt_fetch($kwerenda)) {
+                            echo "<option value='$id'>$ns ($pr $mo)</option>";
+                        }
+                        mysqli_stmt_close($kwerenda);
+                        ?>
+                    </select>
                     <label for="id_klienta">Klient: </label>
                     <select id="id_klienta" name="id_klienta" class="select2" required>
                         <option value=""></option>
@@ -216,18 +230,6 @@
                             else
                                 echo "<option value='$idk'>$fk ($email)</option>";
                         }
-                        mysqli_stmt_close($kwerenda);
-                        ?>
-                    </select>
-                    <label for="id_pracownika">Pracownik: </label>
-                    <select id="id_pracownika" name="id_pracownika" class="select2" required>
-                        <option value=""></option>
-                        <?php
-                        $kwerenda = mysqli_prepare($conn, "SELECT id_pracownika, CONCAT(imie_p, ' ', nazwisko_p) as in_p, email_p FROM pracownik");
-                        mysqli_stmt_execute($kwerenda);
-                        mysqli_stmt_bind_result($kwerenda, $idp, $inp, $email);
-                        while (mysqli_stmt_fetch($kwerenda))
-                            echo "<option value='$idp'>$inp ($email)</option>";
                         mysqli_stmt_close($kwerenda);
                         ?>
                     </select>
@@ -245,7 +247,7 @@
                     <th>Data zgłoszenia</th>
                     <th>Data odbioru</th>
                     <th>Klient</th>
-                    <th>Pracownik</th>
+                    <th>Sprzęt</th>
                     <th>Status</th>
                     <th>Czynności serwisowe</th>
                     <th>Akcje</th>
@@ -256,12 +258,12 @@
                     zgloszenie.id_zgloszenia,
                     zgloszenie.opis_zgloszenia,
                     zgloszenie.data_zgloszenia,
-                    zgloszenie.id_pracownika,
+                    zgloszenie.id_urzadzenia,
                     zgloszenie.id_klienta,
                     IFNULL(zgloszenie.data_odbioru, 'Nieodebrane'),
                     klient.firma_k,
                     CONCAT(klient.imie_k, ' ', klient.nazwisko_k) AS klient,
-                    CONCAT(pracownik.imie_p, ' ', pracownik.nazwisko_p) AS pracownik,
+                    CONCAT(sprzet.nr_seryjny, ' - ', sprzet.producent, ' ', sprzet.model) AS sprzet,
                     IFNULL(status_naprawy.status, 'BRAK') AS status_naprawy,
                     COUNT(czynnosci_serwisowe.id_czynnosci) AS liczba_czynnosci
                 FROM
@@ -269,7 +271,7 @@
                 JOIN
                     klient USING (id_klienta)
                 JOIN
-                    pracownik USING (id_pracownika)
+                    sprzet USING (id_urzadzenia)
                 LEFT JOIN
                     czynnosci_serwisowe USING (id_zgloszenia)
                 JOIN
@@ -285,13 +287,13 @@
                             id_zgloszenia
                     ) AS najnowszy_status ON status_naprawy.id_zgloszenia = najnowszy_status.id_zgloszenia
                         AND status_naprawy.data_zmiany = najnowszy_status.najnowsza_data_zmiany
-                WHERE zgloszenie.id_urzadzenia = ?
+                WHERE zgloszenie.id_pracownika = ?
                 GROUP BY
                     zgloszenie.id_zgloszenia;");
-                $id_urz = $_GET['id'];
-                mysqli_stmt_bind_param($kwerenda, 'i', $id_urz);
+                $id_kl = $_GET['id'];
+                mysqli_stmt_bind_param($kwerenda, 'i', $id_kl);
                 mysqli_stmt_execute($kwerenda);
-                mysqli_stmt_bind_result($kwerenda, $iz, $oz, $dz, $ip, $ik, $do, $k1, $k2, $p, $status, $lc);
+                mysqli_stmt_bind_result($kwerenda, $iz, $oz, $dz, $iu, $ik, $do, $k1, $k2, $s, $status, $lc);
                 while (mysqli_stmt_fetch($kwerenda)) {
                     echo "<tr id='zgl-$iz'>";
                     echo "<td>" . $oz . "</td>";
@@ -301,7 +303,7 @@
                         echo "<td><a href='klientSzczegoly.php?id=$ik'>$k1</a></td>";
                     else
                         echo "<td><a href='klientSzczegoly.php?id=$ik'>$k2</a></td>";
-                    echo "<td><a href='pracownikSzczegoly.php?id=$ip'>$p</a></td>";
+                    echo "<td><a href='sprzetSzczegoly.php?id=$iu'>$s</a></td>";
                     echo "<td class='status'>" . $status . "</td>";
                     echo "<td><a href='czynnosciSerwisowe.php?zgl=$iz'>Czynności ($lc)</a></td>";
                     echo "<td class='buttons'>";
@@ -334,12 +336,12 @@
         const statusBtnArr = document.querySelectorAll("button.status-btn");
 
         $(document).ready(function() {
-            $('.select2#id_klienta').select2({
-                placeholder: '-- Wybierz klienta --',
+            $('.select2#id_urzadzenia').select2({
+                placeholder: '-- Wybierz urządzenie --',
                 language: 'pl'
             });
-            $('.select2#id_pracownika').select2({
-                placeholder: '-- Wybierz pracownika --',
+            $('.select2#id_klienta').select2({
+                placeholder: '-- Wybierz klienta --',
                 language: 'pl'
             });
 

@@ -172,7 +172,7 @@
     ?>
     <div class="main-panel">
         <div class="form-container">
-            <form action="add_device.php" method="post">
+            <form action="php/add_device.php" method="post">
                 <h2>Rejestracja urządzenia</h2>
                 <fieldset>
                     <label for="nrSeryjny">Nr seryjny: </label><input type="text" id="nrSeryjny" name="nrSeryjny" required>

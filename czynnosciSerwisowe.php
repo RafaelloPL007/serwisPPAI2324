@@ -205,7 +205,7 @@
             ?>
         </div>
         <div class="form-container">
-            <form action="add_servicework.php" method="post">
+            <form action="php/add_servicework.php" method="post">
                 <h2>Czynności serwisowe</h2>
                 <fieldset>
                     <label for="opis">Opis: </label><textarea id="opis" name="opis" required></textarea>

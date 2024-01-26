@@ -168,7 +168,7 @@
     ?>
     <div class="main-panel">
         <div class="form-container">
-            <form action="add_customer.php" method="post">
+            <form action="php/add_customer.php" method="post">
                 <h2>Rejestracja danych klienta</h2>
                 <fieldset>
                     <label for="iKlienta">Imię: </label><input type="text" id="iKlienta" name="iKlienta">
@@ -217,6 +217,7 @@
                         <th>Miejscowość</th>
                         <th>Telefon</th>
                         <th>Email</th>
+                        <th>Zgłoszenia</th>
                     </tr>
                 </thead>
                 <tbody>

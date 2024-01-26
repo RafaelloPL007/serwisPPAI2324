@@ -167,7 +167,7 @@
     ?>
     <div class="main-panel">
         <div class="form-container">
-            <form action="add_department.php" method="post">
+            <form action="php/add_department.php" method="post">
                 <h2>Rejestracja oddziału firmy</h2>
                 <fieldset>
                     <label for="nazwaOddzialu">Nazwa oddziału: </label><input type="text" id="nazwaOddzialu" name="nazwaOddzialu">
