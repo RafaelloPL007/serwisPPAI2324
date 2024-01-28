@@ -176,10 +176,12 @@
 <body>
     <?php
     require_once "php/auth.php";
-    adminAuth();
-    include_once("incl/leftPanel.php");
+    clientAuth($_GET['id']);
+    include_once("incl/leftPanelMin.php");
     ?>
     <div class="main-panel">
+        <h1><?php echo "Witaj, " . $_SESSION['uID'];?></h1>
+        <h2>Twoje zgłoszenia</h2>
         <div class="device-data">
             <?php
             define('host', 'localhost');
@@ -205,46 +207,6 @@
             mysqli_stmt_close($kwerenda);
             ?>
         </div>
-        <div class="form-container">
-            <form action="php/add_zgl.php" method="post">
-                <h2>Rejestracja zgłoszenia</h2>
-                <fieldset>
-                    <label for="opis">Opis: </label><textarea id="opis" name="opis" required></textarea>
-                    <label for="data_zgloszenia">Data zgłoszenia: </label><input type="date" name="data_zgloszenia" id="data_zgloszenia" value="<?php echo date("Y-m-d"); ?>" max="<?php echo date("Y-m-d"); ?>" required>
-                    <input type="hidden" name="id_klienta" id="id_klienta" value="<?php echo $_GET['id']; ?>">
-                </fieldset>
-                <fieldset>
-                    <label for="id_urzadzenia">Urządzenie: </label>
-                    <select id="id_urzadzenia" name="id_urzadzenia" class="select2" required>
-                        <option value=""></option>
-                        <?php
-                        $kwerenda = mysqli_prepare($conn, "SELECT id_urzadzenia, nr_seryjny, producent, model FROM sprzet");
-                        mysqli_stmt_execute($kwerenda);
-                        mysqli_stmt_bind_result($kwerenda, $id, $ns, $pr, $mo);
-                        while (mysqli_stmt_fetch($kwerenda)) {
-                            echo "<option value='$id'>$ns ($pr $mo)</option>";
-                        }
-                        mysqli_stmt_close($kwerenda);
-                        ?>
-                    </select>
-                    <label for="id_pracownika">Pracownik: </label>
-                    <select id="id_pracownika" name="id_pracownika" class="select2" required>
-                        <option value=""></option>
-                        <?php
-                        $kwerenda = mysqli_prepare($conn, "SELECT id_pracownika, CONCAT(imie_p, ' ', nazwisko_p) as in_p, email_p FROM pracownik");
-                        mysqli_stmt_execute($kwerenda);
-                        mysqli_stmt_bind_result($kwerenda, $idp, $inp, $email);
-                        while (mysqli_stmt_fetch($kwerenda))
-                            echo "<option value='$idp'>$inp ($email)</option>";
-                        mysqli_stmt_close($kwerenda);
-                        ?>
-                    </select>
-                </fieldset>
-                <fieldset>
-                    <input type="submit" value="Dodaj zgłoszenie">
-                </fieldset>
-            </form>
-        </div>
         <div class="dept-data">
             <h2>Zgłoszenia</h2>
             <table>
@@ -256,7 +218,6 @@
                     <th>Pracownik</th>
                     <th>Status</th>
                     <th>Czynności serwisowe</th>
-                    <th>Akcje</th>
                 </tr>
                 <?php
 
@@ -304,27 +265,11 @@
                     echo "<td>" . $oz . "</td>";
                     echo "<td>" . $dz . "</td>";
                     echo "<td class='data-odbioru'>" . $do . "</td>";
-                    echo "<td><a href='sprzetSzczegoly.php?id=$iu'>$s</a></td>";
-                    echo "<td><a href='pracownikSzczegoly.php?id=$ip'>$p</a></td>";
+                    echo "<td>$s</td>";
+                    echo "<td>$p</td>";
                     echo "<td class='status'>" . $status . "</td>";
-                    echo "<td><a href='czynnosciSerwisowe.php?zgl=$iz'>Czynności ($lc)</a></td>";
-                    echo "<td class='buttons'>";
-                    if ($do == "Nieodebrane")
-                        echo "<button class='end'>Odbiór</button>";
-                    else
-                        echo "<button class='restart'>Anuluj odbiór</button>";
-
-                    if ($status != "Przyjęto w oddziale")
-                        echo "<button class='status-btn prev-status'>Poprz. status</button>";
-                    else
-                        echo "<button class='status-btn prev-status' hidden>Poprz. status</button>";
-
-                    if ($status != "Gotowy do odbioru")
-                        echo "<button class='status-btn next-status'>Nast. status</button>";
-                    else
-                        echo "<button class='status-btn next-status' hidden>Nast. status</button>";
-
-                    echo "</td></tr>";
+                    echo "<td><a href='czynnosciSerwisoweMin.php?zgl=$iz'>Czynności ($lc)</a></td>";
+                    echo "</tr>";
                 }
                 mysqli_close($conn);
                 ?>

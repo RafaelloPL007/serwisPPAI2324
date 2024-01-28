@@ -164,6 +164,8 @@
 
 <body>
     <?php
+        require_once "php/auth.php";
+        adminAuth();
         include_once("incl/leftPanel.php");
     ?>
     <div class="main-panel">
@@ -185,6 +187,10 @@
                     <label for="mKlienta">Miejscowość: </label><input type="text" name="mKlienta" id="mKlienta">
                     <label for="telefon">Telefon: </label><input type="tel" name="telefon" id="telefon">
                     <label for="email">Email: </label><input type="email" name="email" id="email">
+                </fieldset>
+                <fieldset>
+                    <label for="login">Login: </label><input type="text" name="login" id="login">
+                    <label for="pass">Hasło: </label><input type="password" name="pass" id="pass">
                 </fieldset>
                 <fieldset>
                     <input type="submit" value="Zarejestruj klienta">

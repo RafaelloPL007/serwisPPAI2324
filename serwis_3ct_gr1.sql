@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sty 26, 2024 at 03:44 AM
+-- Generation Time: Sty 28, 2024 at 03:28 AM
 -- Wersja serwera: 10.4.24-MariaDB
 -- Wersja PHP: 8.1.4
 
@@ -67,7 +67,8 @@ CREATE TABLE `klient` (
 
 INSERT INTO `klient` (`id_klienta`, `imie_k`, `nazwisko_k`, `firma_k`, `ulica_k`, `nr_domu_k`, `nr_lokalu_k`, `kod_p_k`, `miejscowosc_k`, `telefon_k`, `email_k`) VALUES
 (1, 'Jan', 'Kowalski', '', 'Matysowska', '62', 0, '35-122', 'Rzeszów', '674744921', 'jan.kowalski@gmail.com'),
-(2, 'Michał', 'Nowak', '', 'Rzeszowska', '17', 0, '39-200', 'Dębica', '531765582', 'michalnowak123@outlook.com');
+(2, 'Michał', 'Nowak', '', 'Rzeszowska', '17', 0, '39-200', 'Dębica', '531765582', 'michalnowak123@outlook.com'),
+(3, 'Michał', 'Kowal', '', 'Matuszczaka', '5', 0, '35-084', 'Rzeszów', '525464812', 'mkowal52@outlook.com');
 
 -- --------------------------------------------------------
 
@@ -80,8 +81,19 @@ CREATE TABLE `konto` (
   `haslo` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `data_rejestracji` date NOT NULL,
   `status` enum('A','N') NOT NULL DEFAULT 'N',
-  `id_klienta` int(10) UNSIGNED NOT NULL
+  `typ_konta` enum('A','K') NOT NULL,
+  `id_klienta` int(10) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `konto`
+--
+
+INSERT INTO `konto` (`login`, `haslo`, `data_rejestracji`, `status`, `typ_konta`, `id_klienta`) VALUES
+('abc', '$2y$10$a7/tE9I.PUecSELMdqqNd.Qm1pIj9YKby.HOeNXtYQeW/aL7kPDkG', '2024-01-28', 'A', 'A', NULL),
+('mkowal52', '$2y$10$a7/tE9I.PUecSELMdqqNd.Qm1pIj9YKby.HOeNXtYQeW/aL7kPDkG', '2024-01-28', 'A', 'K', 3),
+('test', '$2y$10$a7/tE9I.PUecSELMdqqNd.Qm1pIj9YKby.HOeNXtYQeW/aL7kPDkG', '2024-01-28', 'A', 'K', 1),
+('test2', '$2y$10$a7/tE9I.PUecSELMdqqNd.Qm1pIj9YKby.HOeNXtYQeW/aL7kPDkG', '2024-01-28', 'A', 'K', 2);
 
 -- --------------------------------------------------------
 
@@ -106,7 +118,8 @@ CREATE TABLE `oddzial` (
 --
 
 INSERT INTO `oddzial` (`id_oddzialu`, `nazwa_oddzialu`, `ulica_o`, `nr_domu_o`, `nr_lokalu_o`, `kod_o`, `miejscowosc_o`, `telefon_o`, `email_o`) VALUES
-(1, 'Centrala w Rzeszowie', 'Podwisłocze', '22', 2, '35-084', 'Rzeszów', '177428282', 'rzeszow@servis.pl');
+(1, 'Centrala w Rzeszowie', 'Podwisłocze', '22', 2, '35-084', 'Rzeszów', '177428282', 'rzeszow@servis.pl'),
+(5, 'Oddział w Dębicy', 'Rzeszowska', '15A', 2, '39-100', 'Dębica', '177428281', 'debica@servis.pl');
 
 -- --------------------------------------------------------
 
@@ -186,7 +199,8 @@ INSERT INTO `status_naprawy` (`id_statusu`, `data_zmiany`, `status`, `id_zglosze
 (14, '2024-01-26 00:58:12', 'Przyjęto w oddziale', 4),
 (15, '2024-01-26 00:58:14', 'W trakcie naprawy', 4),
 (16, '2024-01-26 00:58:16', 'Przyjęto w oddziale', 4),
-(17, '2024-01-26 03:14:44', 'Przyjęto w oddziale', 5);
+(17, '2024-01-26 03:14:44', 'Przyjęto w oddziale', 5),
+(18, '2024-01-28 01:53:16', 'Przyjęto w oddziale', 6);
 
 -- --------------------------------------------------------
 
@@ -212,7 +226,8 @@ INSERT INTO `zgloszenie` (`id_zgloszenia`, `opis_zgloszenia`, `data_zgloszenia`,
 (2, 'Pojawiają się poziome paski na monitorze, problemy z uruchomieniem', '2024-01-23', '2024-01-26', 2, 1, 1),
 (3, 'Awaria głośników', '2024-01-26', NULL, 2, 1, 1),
 (4, 'Nie uruchamia się', '2024-01-26', NULL, 1, 1, 2),
-(5, 'Zalanie klawiatury', '2024-01-26', NULL, 1, 1, 2);
+(5, 'Zalanie klawiatury', '2024-01-26', NULL, 1, 1, 2),
+(6, 'Nie działa', '2024-01-28', NULL, 2, 1, 1);
 
 --
 -- Indeksy dla zrzutów tabel
@@ -230,9 +245,9 @@ ALTER TABLE `czynnosci_serwisowe`
 --
 ALTER TABLE `klient`
   ADD PRIMARY KEY (`id_klienta`),
-  ADD UNIQUE KEY `telefon_k` (`telefon_k`),
-  ADD UNIQUE KEY `email_k` (`email_k`),
-  ADD KEY `idx1` (`nazwisko_k`);
+  ADD KEY `idx1` (`nazwisko_k`),
+  ADD KEY `telefon_k` (`telefon_k`) USING BTREE,
+  ADD KEY `email_k` (`email_k`) USING BTREE;
 
 --
 -- Indeksy dla tabeli `konto`
@@ -246,18 +261,18 @@ ALTER TABLE `konto`
 --
 ALTER TABLE `oddzial`
   ADD PRIMARY KEY (`id_oddzialu`),
-  ADD UNIQUE KEY `telefon_o` (`telefon_o`),
-  ADD UNIQUE KEY `email_o` (`email_o`);
+  ADD KEY `telefon_o` (`telefon_o`) USING BTREE,
+  ADD KEY `email_o` (`email_o`) USING BTREE;
 
 --
 -- Indeksy dla tabeli `pracownik`
 --
 ALTER TABLE `pracownik`
   ADD PRIMARY KEY (`id_pracownika`),
-  ADD UNIQUE KEY `telefon_p` (`telefon_p`),
-  ADD UNIQUE KEY `email_p` (`email_p`),
   ADD KEY `pracownik_id_oddzialu_fk` (`id_oddzialu`),
-  ADD KEY `idx2` (`nazwisko_p`);
+  ADD KEY `idx2` (`nazwisko_p`),
+  ADD KEY `email_p` (`email_p`) USING BTREE,
+  ADD KEY `telefon_p` (`telefon_p`) USING BTREE;
 
 --
 -- Indeksy dla tabeli `sprzet`
@@ -296,13 +311,13 @@ ALTER TABLE `czynnosci_serwisowe`
 -- AUTO_INCREMENT for table `klient`
 --
 ALTER TABLE `klient`
-  MODIFY `id_klienta` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_klienta` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `oddzial`
 --
 ALTER TABLE `oddzial`
-  MODIFY `id_oddzialu` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_oddzialu` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `pracownik`
@@ -320,13 +335,13 @@ ALTER TABLE `sprzet`
 -- AUTO_INCREMENT for table `status_naprawy`
 --
 ALTER TABLE `status_naprawy`
-  MODIFY `id_statusu` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id_statusu` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `zgloszenie`
 --
 ALTER TABLE `zgloszenie`
-  MODIFY `id_zgloszenia` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_zgloszenia` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables

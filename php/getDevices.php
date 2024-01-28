@@ -1,4 +1,6 @@
 <?php
+require_once "auth.php";
+adminAuth();
 if(!isset($_POST['serial'])){
     echo "Brak wymaganych parametrów";
     exit();

@@ -1,6 +1,6 @@
 <?php
-session_start();
-
+require_once "auth.php";
+adminAuth();
 if (isset($_SESSION['uID']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     define('host', 'localhost');
     define('user', 'root');

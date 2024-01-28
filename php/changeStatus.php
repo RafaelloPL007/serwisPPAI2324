@@ -1,4 +1,6 @@
 <?php
+require_once "auth.php";
+adminAuth();
 define('host', 'localhost');
 define('user', 'root');
 define('pass', '');

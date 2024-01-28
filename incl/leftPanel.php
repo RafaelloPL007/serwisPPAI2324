@@ -1,10 +1,10 @@
 <div class="menuPanel">
     <p><i class="fa-solid fa-user-tie"></i></p>
     <?php
-    session_start();
     echo "<p>" . $_SESSION['uID'] . "</p>";
     ?>
     <hr>
+    <a href="dashboard.php"><input type="button" value="Panel główny"></a>
     <a href="php/logout.php"><input type="button" value="Wylogowywanie"></a>
     <hr>
     <ul>

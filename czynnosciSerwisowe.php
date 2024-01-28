@@ -175,6 +175,8 @@
 
 <body>
     <?php
+    require_once "php/auth.php";
+    adminAuth();
     include_once("incl/leftPanel.php");
     ?>
     <div class="main-panel">
@@ -185,10 +187,10 @@
             define('pass', '');
             $conn = mysqli_connect(host, user, pass);
             $baza = mysqli_select_db($conn, 'serwis_3ct_gr1');
-            $kwerenda = mysqli_prepare($conn, "SELECT id_zgloszenia, opis_zgloszenia, data_zgloszenia, data_odbioru, sprzet.id_urzadzenia, sprzet.nr_seryjny, sprzet.producent, sprzet.model, sprzet.kategoria, CONCAT(klient.imie_k, ' ', klient.nazwisko_k) as in_k, klient.firma_k, CONCAT(pracownik.imie_p, ' ', pracownik.nazwisko_p) as in_p FROM zgloszenie JOIN sprzet USING (id_urzadzenia) JOIN klient USING (id_klienta) JOIN pracownik USING (id_pracownika) WHERE id_zgloszenia = ?");
+            $kwerenda = mysqli_prepare($conn, "SELECT id_zgloszenia, opis_zgloszenia, data_zgloszenia, data_odbioru, sprzet.id_urzadzenia, sprzet.nr_seryjny, sprzet.producent, sprzet.model, sprzet.kategoria, klient.id_klienta, CONCAT(klient.imie_k, ' ', klient.nazwisko_k) as in_k, klient.firma_k, pracownik.id_pracownika, CONCAT(pracownik.imie_p, ' ', pracownik.nazwisko_p) as in_p FROM zgloszenie JOIN sprzet USING (id_urzadzenia) JOIN klient USING (id_klienta) JOIN pracownik USING (id_pracownika) WHERE id_zgloszenia = ?");
             mysqli_stmt_bind_param($kwerenda, 'i', $_GET['zgl']);
             mysqli_stmt_execute($kwerenda);
-            mysqli_stmt_bind_result($kwerenda, $iz, $oz, $dz, $do, $spr_id, $nr_ser, $pro, $mod, $kat, $k1, $k2, $p);
+            mysqli_stmt_bind_result($kwerenda, $iz, $oz, $dz, $do, $spr_id, $nr_ser, $pro, $mod, $kat, $idk, $k1, $k2, $idp, $p);
             mysqli_stmt_fetch($kwerenda);
             if($do == "")
                 echo "<h2>Zgłoszenie nr $iz z dnia $dz</h2>";
@@ -197,10 +199,10 @@
             echo "<h2>Opis zgłoszenia: $oz<h2>";
             echo "<h2>Sprzęt: <a href='sprzetSzczegoly.php?id=$spr_id'>$nr_ser - $pro $mod - $kat</a></h2>";
             if($k1 != "")
-                echo "<h2>Klient: $k1</h2>";
+                echo "<h2>Klient: <a href='klientSzczegoly.php?id=$idk'>$k1</a></h2>";
             else
-                echo "<h2>Klient: $k2</h2>";
-            echo "<h2>Pracownik: $p</h2>";
+                echo "<h2>Klient: <a href='klientSzczegoly.php?id=$idk'>$k2</a></h2>";
+            echo "<h2>Pracownik: <a href='pracownikSzczegoly.php?id=$idp'>$p</a></h2>";
             mysqli_stmt_close($kwerenda);
             ?>
         </div>

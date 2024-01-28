@@ -1,4 +1,4 @@
-async function getClientData(clientName, clientTel, clientEmail){
+async function getClientData(clientName, clientTel, clientEmail) {
     const url = "php/getClients.php";
     const formData = new FormData();
     formData.append('cname', clientName);
@@ -10,7 +10,7 @@ async function getClientData(clientName, clientTel, clientEmail){
         body: formData
     });
 
-    if(response.ok){
+    if (response.ok) {
         response = await response.json();
         return response;
     }
@@ -20,8 +20,8 @@ async function getClientData(clientName, clientTel, clientEmail){
         };
 }
 
-async function displayClientData(tableEl, clientName, clientTel, clientEmail){
-    if(clientName == undefined){
+async function displayClientData(tableEl, clientName, clientTel, clientEmail) {
+    if (clientName == undefined) {
         clientName = "";
         clientTel = "";
         clientEmail = "";
@@ -40,13 +40,13 @@ async function displayClientData(tableEl, clientName, clientTel, clientEmail){
         let newCell8 = newRow.insertCell(-1);
         let newCell9 = newRow.insertCell(-1);
 
-        if(client.imieNazwisko == " ")
+        if (client.imieNazwisko == " ")
             newCell1.textContent = client.firma;
         else
             newCell1.textContent = client.imieNazwisko;
         newCell2.textContent = client.ulica;
         newCell3.textContent = client.nr_domu;
-        if(client.nr_lokalu != 0)
+        if (client.nr_lokalu != 0)
             newCell4.textContent = client.nr_lokalu;
         newCell5.textContent = client.kod_pocztowy;
         newCell6.textContent = client.miejscowosc;
@@ -56,7 +56,7 @@ async function displayClientData(tableEl, clientName, clientTel, clientEmail){
     })
 }
 
-async function getDeviceData(serialNr){
+async function getDeviceData(serialNr) {
     const url = "php/getDevices.php";
     const formData = new FormData();
     formData.append('serial', serialNr);
@@ -66,7 +66,7 @@ async function getDeviceData(serialNr){
         body: formData
     });
 
-    if(response.ok){
+    if (response.ok) {
         response = await response.json();
         return response;
     }
@@ -76,8 +76,8 @@ async function getDeviceData(serialNr){
         };
 }
 
-async function displayDeviceData(tableEl, serialNr){
-    if(serialNr === undefined)
+async function displayDeviceData(tableEl, serialNr) {
+    if (serialNr === undefined)
         serialNr = "";
     const data = await getDeviceData(serialNr);
     tableEl.innerHTML = "";
@@ -97,7 +97,7 @@ async function displayDeviceData(tableEl, serialNr){
     })
 }
 
-async function getReportData(k, p, s){
+async function getReportData(k, p, s) {
     const url = "php/getReports.php";
     const formData = new FormData();
     formData.append('id-kl-s', k);
@@ -109,7 +109,7 @@ async function getReportData(k, p, s){
         body: formData
     });
 
-    if(response.ok){
+    if (response.ok) {
         response = await response.json();
         return response;
     }
@@ -119,12 +119,12 @@ async function getReportData(k, p, s){
         };
 }
 
-async function displayReportData(tableEl, k, p, s){
-    if(k === undefined)
+async function displayReportData(tableEl, k, p, s) {
+    if (k === undefined)
         k = 0;
-    if(p === undefined)
+    if (p === undefined)
         p = 0;
-    if(s === undefined)
+    if (s === undefined)
         s = 0;
     const data = await getReportData(k, p, s);
     tableEl.innerHTML = "";
@@ -147,7 +147,7 @@ async function displayReportData(tableEl, k, p, s){
         newCell1.textContent = report.opis;
         newCell2.textContent = report.dataZg;
         newCell3.textContent = report.data_od;
-        if(report.klient1 != "")
+        if (report.klient1 != "")
             newCell4.innerHTML = "<a href='klientSzczegoly.php?id=" + report.idk + "'>" + report.klient1 + "</a>";
         else
             newCell4.innerHTML = "<a href='klientSzczegoly.php?id=" + report.idk + "'>" + report.klient2 + "</a>";
@@ -155,17 +155,88 @@ async function displayReportData(tableEl, k, p, s){
         newCell6.innerHTML = "<a href='sprzetSzczegoly.php?id=" + report.idu + "'>" + report.sprzet + "</a>";
         newCell7.textContent = report.status;
         newCell8.innerHTML = "<a href='czynnosciSerwisowe.php?zgl=" + report.id + "'>Czynności (" + report.liczbaCzynnosci + ")</a>";
-        if(report.data_od == "Nieodebrane")
+        if (report.data_od == "Nieodebrane")
             newCell9.innerHTML += "<button class='end'>Odbiór</button>";
         else
             newCell9.innerHTML += "<button class='restart'>Anuluj odbiór</button>";
-        if(report.status != "Przyjęto w oddziale")
+        if (report.status != "Przyjęto w oddziale")
             newCell9.innerHTML += "<button class='status-btn prev-status'>Poprz. status</button>";
         else
             newCell9.innerHTML += "<button class='status-btn prev-status' hidden>Poprz. status</button>";
-        if(report.status != "Gotowy do odbioru")
+        if (report.status != "Gotowy do odbioru")
             newCell9.innerHTML += "<button class='status-btn next-status'>Nast. status</button>";
         else
             newCell9.innerHTML += "<button class='status-btn next-status' hidden>Nast. status</button>";
     })
+}
+
+function changeOdb() {
+    let end = true;
+    if (event.target.classList.contains("restart")) end = false;
+    const rowEl = event.target.parentNode.parentNode;
+    const sendData = {
+        id: rowEl.getAttribute("id").substring(4),
+        endZgl: end
+    };
+    $.ajax({
+        type: "POST",
+        url: "php/finishZgl.php",
+        data: sendData
+    }).done(resp => {
+        rowEl.querySelector(".data-odbioru").textContent = resp;
+        let btnEl = rowEl.querySelector(".buttons .end");
+
+        if (btnEl == undefined) {
+            let btnEl = rowEl.querySelector(".buttons .restart");
+            btnEl.textContent = "Odbiór";
+            btnEl.classList.remove("restart");
+            btnEl.classList.add("end");
+        } else {
+            btnEl.textContent = "Anuluj odbiór";
+            btnEl.classList.remove("end");
+            btnEl.classList.add("restart");
+        }
+    })
+}
+
+function changeStatus() {
+    const rowEl = event.target.parentNode.parentNode;
+    const currStatus = rowEl.querySelector(".status").textContent;
+    let statusId = STATUSY.indexOf(currStatus);
+    if (event.target.classList.contains("prev-status")) statusId--;
+    else if (event.target.classList.contains("next-status")) statusId++;
+
+    if (statusId > -1 && statusId < STATUSY.length) {
+        const sendData = {
+            id: rowEl.getAttribute("id").substring(4),
+            status: STATUSY[statusId]
+        };
+        $.ajax({
+            type: "POST",
+            url: "php/changeStatus.php",
+            data: sendData
+        }).done(resp => {
+            rowEl.querySelector(".status").textContent = STATUSY[statusId];
+
+            if (statusId == 0)
+                rowEl.querySelector(".prev-status").setAttribute("hidden", "hidden");
+            else
+                rowEl.querySelector(".prev-status").removeAttribute("hidden");
+
+            if (statusId == STATUSY.length - 1)
+                rowEl.querySelector(".next-status").setAttribute("hidden", "hidden");
+            else
+                rowEl.querySelector(".next-status").removeAttribute("hidden");
+        })
+    }
+}
+
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(String(email).toLowerCase());
+}
+
+function validatePhoneNumber(phoneNumber) {
+    const re = /^[\d+ -]+$/;
+    return re.test(phoneNumber);
 }

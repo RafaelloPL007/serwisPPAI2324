@@ -168,6 +168,8 @@
 
 <body>
     <?php
+        require_once "php/auth.php";
+        adminAuth();
         include_once("incl/leftPanel.php");
     ?>
     <div class="main-panel">

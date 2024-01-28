@@ -1,4 +1,6 @@
 <?php
+require_once "auth.php";
+adminAuth();
 if (!isset($_POST['cname']) || !isset($_POST['ctel']) || !isset($_POST['cmail'])) {
     echo "Brak wymaganych parametrów";
     exit();

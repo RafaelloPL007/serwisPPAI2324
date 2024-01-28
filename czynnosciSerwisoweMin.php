@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 <style>
     * {
@@ -84,8 +87,8 @@
     }
 
     div.menuPanel li a {
-        color: white;
         text-decoration: none;
+        color: white;
     }
 
     div.main-panel {
@@ -131,6 +134,10 @@
         margin-right: 20px;
     }
 
+    fieldset label[for='oddzial'] {
+        margin-left: 20px;
+    }
+
     fieldset input {
         padding: 5px 2px;
     }
@@ -159,87 +166,84 @@
     table tr td {
         border-bottom: 1px solid #BBB;
     }
+
+    textarea#opis {
+        width: 200px;
+        height: 100px;
+    }
 </style>
 
 <body>
     <?php
     require_once "php/auth.php";
-    adminAuth();
-    include_once("incl/leftPanel.php");
+    define('host', 'localhost');
+    define('user', 'root');
+    define('pass', '');
+    $conn = mysqli_connect(host, user, pass);
+    $baza = mysqli_select_db($conn, 'serwis_3ct_gr1');
+    $kwerenda = mysqli_prepare($conn, 'SELECT id_klienta FROM zgloszenie WHERE id_zgloszenia = ?');
+    mysqli_stmt_bind_param($kwerenda, 'i', $_GET['zgl']);
+    mysqli_stmt_execute($kwerenda);
+    mysqli_stmt_bind_result($kwerenda, $idk);
+    mysqli_stmt_fetch($kwerenda);
+    mysqli_stmt_close($kwerenda);
+    clientAuth($idk);
+    include_once("incl/leftPanelMin.php");
     ?>
     <div class="main-panel">
-        <h1><?php echo "Witaj, " . $_SESSION['uID'];?></h1>
-        <a href="oddzialy.php">
-            <div class="dash-el">
-                <h3>Oddziały</h3>
+        <?php
+            echo "<a href='klientSzczegolyMin.php?id=$idk'>Powrót do listy zgłoszeń</a>";
+        ?>
+        <div class="device-data">
+            <?php
+
+            $kwerenda = mysqli_prepare($conn, "SELECT id_zgloszenia, opis_zgloszenia, data_zgloszenia, data_odbioru, sprzet.id_urzadzenia, sprzet.nr_seryjny, sprzet.producent, sprzet.model, sprzet.kategoria, klient.id_klienta, CONCAT(klient.imie_k, ' ', klient.nazwisko_k) as in_k, klient.firma_k, CONCAT(pracownik.imie_p, ' ', pracownik.nazwisko_p) as in_p FROM zgloszenie JOIN sprzet USING (id_urzadzenia) JOIN klient USING (id_klienta) JOIN pracownik USING (id_pracownika) WHERE id_zgloszenia = ?");
+            mysqli_stmt_bind_param($kwerenda, 'i', $_GET['zgl']);
+            mysqli_stmt_execute($kwerenda);
+            mysqli_stmt_bind_result($kwerenda, $iz, $oz, $dz, $do, $spr_id, $nr_ser, $pro, $mod, $kat, $idk, $k1, $k2, $p);
+            mysqli_stmt_fetch($kwerenda);
+            if ($do == "")
+                echo "<h2>Zgłoszenie nr $iz z dnia $dz</h2>";
+            else
+                echo "<h2>Zgłoszenie nr $iz z dnia $dz - odebrane $do</h2>";
+            echo "<h2>Opis zgłoszenia: $oz<h2>";
+            echo "<h2>Sprzęt: $nr_ser - $pro $mod - $kat</h2>";
+            if ($k1 != "")
+                echo "<h2>Klient: <a href='klientSzczegolyMin.php?id=$idk'>$k1</a></h2>";
+            else
+                echo "<h2>Klient: <a href='klientSzczegolyMin.php?id=$idk'>$k2</a></h2>";
+            echo "<h2>Pracownik: $p</h2>";
+            mysqli_stmt_close($kwerenda);
+            ?>
+        </div>
+        <div class="dept-data">
+            <h2>Czynności serwisowe</h2>
+            <table>
+                <tr>
+                    <th>Opis</th>
+                    <th>Cena</th>
+                </tr>
                 <?php
-                    define('host', 'localhost');
-                    define('user', 'root');
-                    define('pass', '');
-                    $conn = mysqli_connect(host, user, pass);
-                    $baza = mysqli_select_db($conn, 'serwis_3ct_gr1');
-                    $kwerenda = mysqli_prepare($conn, "SELECT COUNT(*) FROM oddzial");
-                    mysqli_stmt_execute($kwerenda);
-                    mysqli_stmt_bind_result($kwerenda, $ctr);
-                    mysqli_stmt_fetch($kwerenda);
-                    echo "<span>$ctr</span>";
-                    mysqli_stmt_close($kwerenda);
+
+                $kwerenda = mysqli_prepare($conn, "SELECT id_czynnosci, opis_czynnosci, cena FROM czynnosci_serwisowe WHERE id_zgloszenia = ?");
+                $id_zgl = $_GET['zgl'];
+                mysqli_stmt_bind_param($kwerenda, 'i', $id_zgl);
+                mysqli_stmt_execute($kwerenda);
+                mysqli_stmt_bind_result($kwerenda, $ic, $oc, $c);
+                while (mysqli_stmt_fetch($kwerenda)) {
+                    echo "<tr id='czy-$ic'>";
+                    echo "<td>" . $oc . "</td>";
+                    echo "<td>" . $c . " zł</td>";
+                    echo "</tr>";
+                }
+                mysqli_close($conn);
                 ?>
-            </div>
-        </a>
-        <a href="klienci.php">
-            <div class="dash-el">
-                <h3>Klienci</h3>
-                <?php
-                    $kwerenda = mysqli_prepare($conn, "SELECT COUNT(*) FROM klient");
-                    mysqli_stmt_execute($kwerenda);
-                    mysqli_stmt_bind_result($kwerenda, $ctr);
-                    mysqli_stmt_fetch($kwerenda);
-                    echo "<span>$ctr</span>";
-                    mysqli_stmt_close($kwerenda);
-                ?>
-            </div>
-        </a>
-        <a href="pracownicy.php">
-            <div class="dash-el">
-                <h3>Pracownicy</h3>
-                <?php
-                    $kwerenda = mysqli_prepare($conn, "SELECT COUNT(*) FROM pracownik");
-                    mysqli_stmt_execute($kwerenda);
-                    mysqli_stmt_bind_result($kwerenda, $ctr);
-                    mysqli_stmt_fetch($kwerenda);
-                    echo "<span>$ctr</span>";
-                    mysqli_stmt_close($kwerenda);
-                ?>
-            </div>
-        </a>
-        <a href="sprzet.php">
-            <div class="dash-el">
-                <h3>Sprzęt</h3>
-                <?php
-                    $kwerenda = mysqli_prepare($conn, "SELECT COUNT(*) FROM sprzet");
-                    mysqli_stmt_execute($kwerenda);
-                    mysqli_stmt_bind_result($kwerenda, $ctr);
-                    mysqli_stmt_fetch($kwerenda);
-                    echo "<span>$ctr</span>";
-                    mysqli_stmt_close($kwerenda);
-                ?>
-            </div>
-        </a>
-        <a href="sprzet.php">
-            <div class="dash-el">
-                <h3>Zgłoszenia</h3>
-                <?php
-                    $kwerenda = mysqli_prepare($conn, "SELECT COUNT(*) FROM zgloszenie");
-                    mysqli_stmt_execute($kwerenda);
-                    mysqli_stmt_bind_result($kwerenda, $ctr);
-                    mysqli_stmt_fetch($kwerenda);
-                    echo "<span>$ctr</span>";
-                    mysqli_stmt_close($kwerenda);
-                ?>
-            </div>
-        </a>
+            </table>
+        </div>
     </div>
+    <script>
+
+    </script>
 </body>
 
 </html>

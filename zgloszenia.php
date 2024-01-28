@@ -175,6 +175,8 @@
 
 <body>
     <?php
+    require_once "php/auth.php";
+    adminAuth();
     include_once("incl/leftPanel.php");
     ?>
     <div class="main-panel">
@@ -339,66 +341,7 @@
             });
         })
 
-        function changeOdb() {
-            let end = true;
-            if (event.target.classList.contains("restart")) end = false;
-            const rowEl = event.target.parentNode.parentNode;
-            const sendData = {
-                id: rowEl.getAttribute("id").substring(4),
-                endZgl: end
-            };
-            $.ajax({
-                type: "POST",
-                url: "php/finishZgl.php",
-                data: sendData
-            }).done(resp => {
-                rowEl.querySelector(".data-odbioru").textContent = resp;
-                let btnEl = rowEl.querySelector(".buttons .end");
-
-                if (btnEl == undefined) {
-                    let btnEl = rowEl.querySelector(".buttons .restart");
-                    btnEl.textContent = "Odbiór";
-                    btnEl.classList.remove("restart");
-                    btnEl.classList.add("end");
-                } else {
-                    btnEl.textContent = "Anuluj odbiór";
-                    btnEl.classList.remove("end");
-                    btnEl.classList.add("restart");
-                }
-            })
-        }
-
-        function changeStatus() {
-            const rowEl = event.target.parentNode.parentNode;
-            const currStatus = rowEl.querySelector(".status").textContent;
-            let statusId = STATUSY.indexOf(currStatus);
-            if (event.target.classList.contains("prev-status")) statusId--;
-            else if (event.target.classList.contains("next-status")) statusId++;
-
-            if (statusId > -1 && statusId < STATUSY.length) {
-                const sendData = {
-                    id: rowEl.getAttribute("id").substring(4),
-                    status: STATUSY[statusId]
-                };
-                $.ajax({
-                    type: "POST",
-                    url: "php/changeStatus.php",
-                    data: sendData
-                }).done(resp => {
-                    rowEl.querySelector(".status").textContent = STATUSY[statusId];
-
-                    if (statusId == 0)
-                        rowEl.querySelector(".prev-status").setAttribute("hidden", "hidden");
-                    else
-                        rowEl.querySelector(".prev-status").removeAttribute("hidden");
-
-                    if (statusId == STATUSY.length - 1)
-                        rowEl.querySelector(".next-status").setAttribute("hidden", "hidden");
-                    else
-                        rowEl.querySelector(".next-status").removeAttribute("hidden");
-                })
-            }
-        }
+        
 
         window.addEventListener("load", () => {
             endBtnArr.forEach(btn => {

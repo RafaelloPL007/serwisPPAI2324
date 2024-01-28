@@ -1,4 +1,6 @@
 <?php
+require_once "auth.php";
+adminAuth();
 if (!isset($_POST['id-pr-s']) || !isset($_POST['id-kl-s']) || !isset($_POST['id-urz-s'])) {
     echo "Brak wymaganych parametrów";
     exit();
