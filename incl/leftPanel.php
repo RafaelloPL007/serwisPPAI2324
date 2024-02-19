@@ -1,17 +1,16 @@
-<div class="menuPanel">
-    <p><i class="fa-solid fa-user-tie"></i></p>
-    <?php
-    echo "<p>" . $_SESSION['uID'] . "</p>";
-    ?>
-    <hr>
-    <a href="dashboard.php"><input type="button" value="Panel główny"></a>
-    <a href="php/logout.php"><input type="button" value="Wylogowywanie"></a>
-    <hr>
-    <ul>
-        <li><a href="oddzialy.php"><i class="fa-solid fa-city"></i>Dane oddziału</a></li>
-        <li><a href="klienci.php"><i class="fa-solid fa-user-group"></i>Klienci serwisu</a></li>
-        <li><a href="pracownicy.php"><i class="fa-solid fa-person-praying"></i>Pracownicy serwisu</a></li>
-        <li><a href="sprzet.php"><i class="fa-solid fa-folder-open"></i>Kartoteka sprzętu</a></li>
-        <li><a href="zgloszenia.php"><i class="fa-solid fa-flag"></i>Zgłoszenia serwisowe</a></li>
+<div class="container">
+    <div class="leftpanel">
+    <div class="user">
+    <i class="fa-solid fa-user-tie"></i>
+    <div class="username">
+    <p>Uzytkownik</p>
+    </div>
+    </div>
+    <ul class ="buttons">
+        <li><div><i class="fa-solid fa-city"></i></div><a href="oddzialy.php"></i>Dane oddziału</a></li>
+        <li><div><i class="fa-solid fa-user-group"></i></div><a href="klienci.php"></i>Klienci serwisu</a></li>
+        <li><div><i class="fa-solid fa-person-praying"></i></div><a href="pracownicy.php">Pracownicy serwisu</a></li>
+        <li><div><i class="fa-solid fa-folder-open"></i></div><a href="sprzet.php">Kartoteka sprzętu</a></li>
+        <li><div></div><a href="">Zgłoszenia serwisowe</a></li>
     </ul>
 </div>
